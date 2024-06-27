@@ -25,6 +25,7 @@ jobs:
       - name: Update submodules
         run: git submodule update --remote
 # Github actions cannot cascade, so build and sync here.
+      - run: npm install
       - name: Build dist
         run: npm run build
       - run: rclone sync --progress dist openbible:static2
