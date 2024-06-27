@@ -16,15 +16,16 @@ function updateDist(dir) {
 }
 
 function writeIndex() {
-	const index = {
-		bibles: readdirSync(join(outDir, biblesDir)).map(bibleMetadata),
-	};
-	const fname = join(outDir, 'index.json');
+	const index = readdirSync(join(outDir, biblesDir)).reduce((acc, cur) => {
+		acc[cur] = metadata(cur);
+		return acc;
+	}, {});
+	const fname = join(outDir, biblesDir, 'index.json');
 	writeFileSync(fname, JSON.stringify(index, null, 2));
 	console.log(fname);
 }
 
-function bibleMetadata(dir) {
+function metadata(dir) {
 	const modified = execSync("git show --no-patch --format=%cd --date=format:'%Y-%m-%d'")
 		.toString()
 		.trim();
@@ -34,7 +35,6 @@ function bibleMetadata(dir) {
 		.sort();
 
 	let metadata = {
-		id: dir,
 		publisher: 'unknown',
 		title: 'unknown',
 		date: 'unknown',
