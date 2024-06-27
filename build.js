@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { join } from 'path';
+import { join, basename } from 'path';
 import { readdirSync, existsSync, writeFileSync, readFileSync } from 'fs';
 import YAML from 'yaml';
 
@@ -16,10 +16,13 @@ function updateDist(dir) {
 }
 
 function writeIndex() {
-	const index = readdirSync(join(outDir, biblesDir)).reduce((acc, cur) => {
-		acc[cur] = metadata(cur);
-		return acc;
-	}, {});
+	const index = readdirSync(join(outDir, biblesDir), { withFileTypes: true })
+		.filter(f => f.isDirectory())
+		.map(f => f.name)
+		.reduce((acc, cur) => {
+			acc[cur] = metadata(cur);
+			return acc;
+		}, {});
 	const fname = join(outDir, biblesDir, 'index.json');
 	writeFileSync(fname, JSON.stringify(index, null, 2));
 	console.log(fname);
@@ -29,10 +32,27 @@ function metadata(dir) {
 	const modified = execSync("git show --no-patch --format=%cd --date=format:'%Y-%m-%d'")
 		.toString()
 		.trim();
-	const books = readdirSync(join(outDir, biblesDir, dir), { withFileTypes: true })
+	const booksDir = join(outDir, biblesDir, dir);
+	const books = readdirSync(booksDir, { withFileTypes: true })
 		.filter(f => f.isDirectory())
 		.map(f => f.name)
-		.sort();
+		.sort()
+		.reduce((acc, cur) => {
+			const chapters = readdirSync(join(booksDir, cur))
+				.map(f => +basename(f, '.html'))
+				.sort((a, b) => a - b);
+			let can_compress = true;
+			for (let i = 0; i < chapters.length; i++) {
+				if (i + 1 != chapters[i]) can_compress = false;
+			}
+			if (can_compress) {
+				acc[cur] = chapters.length;
+			} else {
+				acc[cur] = chapters;
+			}
+
+			return acc;
+		}, {});
 
 	let metadata = {
 		publisher: 'unknown',
