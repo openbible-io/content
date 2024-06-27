@@ -22,14 +22,9 @@ jobs:
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
           disable_base64: true
-      - name: Cache static
-        uses: actions/cache@v3
-        with:
-          path:
-            - dist
       - name: Update submodules
         run: git submodule update --remote
-# Github actions cannot cascade, so do the build here.
+# Github actions cannot cascade, so build and sync here.
       - name: Build dist
         run: npm run build
       - run: rclone sync --progress dist openbible:static2

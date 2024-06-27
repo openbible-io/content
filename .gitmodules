@@ -1,0 +1,8 @@
+[submodule "content/en_ult"]
+	path = content/en_ult
+	url = https://github.com/openbible-io/en_ult
+	branch = upstream
+[submodule "content/en_ust"]
+	path = content/en_ust
+	url = https://github.com/openbible-io/en_ust
+	branch = upstream

@@ -1,4 +1,4 @@
-name: Sync to S3
+name: Build and sync to S3
 on:
   push:
     branch:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  pull-upstream:
+  build-sync:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,10 +17,6 @@ jobs:
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
           disable_base64: true
-      - name: Cache static
-        uses: actions/cache@v3
-        with:
-          path: dist
       - name: Build dist
         run: npm run build
       - run: rclone sync --progress dist openbible:static
