@@ -1,0 +1,35 @@
+name: Pull upstream
+on:
+  schedule:
+    - cron: '30 0 * * *' # give mirrors 30m to sync
+  workflow_dispatch:
+permissions:
+  contents: write
+
+jobs:
+  pull-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          ref: preview
+      - uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+      - name: Setup Rclone
+        uses: AnimMouse/setup-rclone@v1
+        with:
+          rclone_config: ${{ secrets.RCLONE_CONFIG }}
+          disable_base64: true
+      - name: Cache static
+        uses: actions/cache@v3
+        with:
+          path:
+            - dist
+      - name: Update submodules
+        run: git submodule update --remote
+# Github actions cannot cascade, so do the build here.
+      - name: Build dist
+        run: npm run build
+      - run: rclone sync --progress dist openbible:static2
