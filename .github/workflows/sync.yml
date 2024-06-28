@@ -3,6 +3,7 @@ on:
   push:
     branch:
         - master
+        - staging
   workflow_dispatch:
 
 jobs:
@@ -23,4 +24,9 @@ jobs:
       - run: npm install
       - name: Build dist
         run: npm run build
-      - run: rclone sync --progress dist openbible:static
+      - run: |
+          case "${{ github.ref_name }}" in
+           master) BUCKET="static" ;;
+           *) BUCKET="static2" ;;
+          esac
+          rclone sync --progress dist openbible:$BUCKET
