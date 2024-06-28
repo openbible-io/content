@@ -1,19 +1,16 @@
-name: Pull upstream
+name: Update staging bucket
 on:
   schedule:
     - cron: '30 0 * * *' # give mirrors 30m to sync
   workflow_dispatch:
-permissions:
-  contents: write
 
 jobs:
-  pull-upstream:
+  update-staging-bucket:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-          ref: preview
       - uses: actions/setup-node@v4
         with:
           cache: 'npm'
@@ -24,7 +21,6 @@ jobs:
           disable_base64: true
       - name: Update submodules
         run: git submodule update --remote
-# Github actions cannot cascade, so build and sync here.
       - run: npm install
       - name: Build dist
         run: npm run build
