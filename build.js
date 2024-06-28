@@ -102,6 +102,6 @@ function unfoldingWord(manifest) {
 	return res;
 }
 
-rmSync(outDir, { recursive: true });
+rmSync(outDir, { recursive: true, force: true });
 readdirSync(contentDir).forEach(updateDist);
 writeIndex();
