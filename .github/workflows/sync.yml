@@ -29,4 +29,5 @@ jobs:
            master) BUCKET="static" ;;
            *) BUCKET="static2" ;;
           esac
+          echo "Syncing to bucket $BUCKET"
           rclone sync --progress dist openbible:$BUCKET

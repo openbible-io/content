@@ -1,14 +1,18 @@
-name: Update staging bucket
+name: Update staging
 on:
   schedule:
     - cron: '30 0 * * *' # give mirrors 30m to sync
   workflow_dispatch:
+permissions:
+  contents: write
 
 jobs:
-  update-staging-bucket:
+  update-staging:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: staging
       - run: git submodule update --init
       - uses: actions/setup-node@v4
         with:
@@ -20,6 +24,14 @@ jobs:
           disable_base64: true
       - name: Update submodules
         run: git submodule update --remote
+      - name: Push submodule updates
+        run: |
+          git config user.name ci
+          git config user.email ci@openbible.io
+          git add content
+          git commit -m 'Bump submodules'
+          git push
+# The above will not cascade to the "sync" job.
       - run: npm install
       - name: Build dist
         run: npm run build
