@@ -61,13 +61,15 @@ function unfoldingWord(version, manifest) {
 		.map(pr => {
 			const path1 = join(outDir, biblesDir, version, basename(pr.path, '.usfm'));
 			const paths = [path1, path1 + '.html'];
+			const path = paths.find(p => existsSync(p));
 			return {
 				...pr,
-				path: paths.find(p => existsSync(p)),
+				path,
+				isDirectory: statSync(path).isDirectory()
 			};
 		})
 		.map(pr => {
-			const newPath = join(outDir, biblesDir, version, pr.identifier);
+			const newPath = join(outDir, biblesDir, version, pr.identifier + (pr.isDirectory ? '' : '.html'));
 			renameSync(pr.path, newPath);
 			pr.path = newPath;
 			return pr;
