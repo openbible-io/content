@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import { join, basename } from 'path';
-import { readdirSync, existsSync, writeFileSync, readFileSync } from 'fs';
+import { readdirSync, existsSync, writeFileSync, readFileSync, renameSync, rmSync } from 'fs';
 import YAML from 'yaml';
 
 const contentDir = 'content';
@@ -12,6 +12,13 @@ function updateDist(dir) {
 	const out = join(outDir, biblesDir, dir);
 
 	execSync(`npm run usfm -- -o ${out} ${join(contentDir, dir)}/*.usfm`);
+	readdirSync(out, { withFileTypes: true })
+		.filter(f => f.isDirectory())
+		.forEach(d => {
+			// Currently unfoldingWord uses the pattern `\{2}d-\{3}w`
+			// This should be replaced with a proper file -> book name manifest.
+			renameSync(join(out, d.name), join(out, d.name.substring(3, 6).toLowerCase()));
+		});
 	console.log();
 }
 
@@ -95,5 +102,6 @@ function unfoldingWord(manifest) {
 	return res;
 }
 
+rmSync(outDir, { recursive: true });
 readdirSync(contentDir).forEach(updateDist);
 writeIndex();

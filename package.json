@@ -4,11 +4,11 @@
 	"scripts": {
 		"build": "node build.js",
 		"usfm": "usfm",
-		"serve": "http-server --port 3334 ./dist"
+		"serve": "http-server --cors --port 3334 ./dist"
 	},
 	"license": "MIT",
 	"dependencies": {
-		"@openbible/usfm": "^0.2.1",
+		"@openbible/usfm": "^0.2.2",
 		"http-server": "^14.1.1",
 		"yaml": "^2.4.5"
 	}
