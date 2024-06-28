@@ -10,11 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
-          fetch-tags: true
+          submodules: recursive
       - uses: actions/setup-node@v4
         with:
-          cache: 'npm'
+          cache: npm
       - name: Setup Rclone
         uses: AnimMouse/setup-rclone@v1
         with:
