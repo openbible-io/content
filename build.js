@@ -24,7 +24,7 @@ function writeIndex() {
 			return acc;
 		}, {});
 	const fname = join(outDir, biblesDir, 'index.json');
-	writeFileSync(fname, JSON.stringify(index, null, 2));
+	writeFileSync(fname, JSON.stringify(index));
 	console.log(fname);
 }
 
