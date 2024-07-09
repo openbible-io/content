@@ -41,6 +41,8 @@ function metadata(dir) {
 		.trim();
 	metadata.books = listBooks(join(outDir, biblesDir, dir));
 
+	validateMetadata(metadata);
+
 	return metadata;
 }
 
@@ -64,6 +66,13 @@ function listBooks(dir) {
 
 			return acc;
 		}, {});
+}
+
+function validateMetadata(meta) {
+	// For frontend's sake
+	if (!meta.title) throw Error('missing title');
+	if (!meta.publisher) throw Error('missing publisher');
+	if (!meta.license) throw Error('missing license');
 }
 
 rmSync(outDir, { recursive: true, force: true });
