@@ -8,7 +8,7 @@
 	- [x] --ff-only
 - [x] upload!
 - [x] manifest
-- [ ] cache to smooth over new frontend deployments
+- [x] cache to smooth over new frontend deployments
 	- [ ] invalidate on s3 sync
 		- [ ] API Key + API call
 		- [ ] rclone --log-file --one-line -v
@@ -25,10 +25,13 @@
 	- [x] number of verses for loading skeleton
 	- [x] remove some tags
 - strongs
-	- USFM official support?
-		- if not, consider other standard format
 - greek/hebrew
 - other langs
+
+content
+https://github.com/Clear-Bible/kathairo.py
+https://archive.org/details/BDBHebrewLexicon
+	- split by word and/or chapter? (measure sizeed
 
 dynamic content
 - search

@@ -6,3 +6,6 @@
 	path = content/en_ust
 	url = https://github.com/openbible-io/en_ust
 	branch = upstream
+[submodule "content/en_bsb"]
+	path = content/en_bsb
+	url = https://github.com/openbible-io/en_bsb

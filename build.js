@@ -1,7 +1,6 @@
 import { execSync } from 'child_process';
 import { join, basename } from 'path';
-import { readdirSync, existsSync, writeFileSync, readFileSync, renameSync, rmSync, statSync } from 'fs';
-import YAML from 'yaml';
+import { readdirSync, writeFileSync, readFileSync, rmSync } from 'fs';
 
 const contentDir = 'content';
 const outDir = 'dist';
@@ -29,55 +28,28 @@ function writeIndex() {
 }
 
 function metadata(dir) {
-	const modified = execSync("git show --no-patch --format=%cd --date=format:'%Y-%m-%d'")
+	const cwd = join(contentDir, dir);
+	console.log('metadata', cwd);
+	execSync('git fetch', { cwd });
+	execSync('git checkout origin/master -- index.json', { cwd });
+	const metadataText = readFileSync(join(cwd, 'index.json'), 'utf8');
+	const metadata = JSON.parse(metadataText);
+
+	metadata.repo = execSync('git remote get-url origin', { cwd }).toString().trim();
+	metadata.modified = execSync("git show --no-patch --format=%cd --date=format:'%Y-%m-%d'", { cwd })
 		.toString()
 		.trim();
-
-	let metadata = {
-		publisher: 'unknown',
-		title: 'unknown',
-		date: 'unknown',
-		modified,
-		license: 'unknown',
-		authors: [],
-		books: {},
-	};
-	const manifest = join(contentDir, dir, 'manifest.yaml');
-	if (existsSync(manifest)) {
-		metadata = Object.assign(metadata, unfoldingWord(dir, manifest));
-	} else {
-		console.error('figure out metadata for', dir, 'or DO NOT publish it');
-		process.exit(1);
-	}
+	metadata.books = listBooks(join(outDir, biblesDir, dir));
 
 	return metadata;
 }
 
-function unfoldingWord(version, manifest) {
-	const yaml = readFileSync(manifest, 'utf8');
-	const parsed = YAML.parse(yaml);
-	const core = parsed['dublin_core'];
-	const books = parsed.projects
-		.map(pr => {
-			const path1 = join(outDir, biblesDir, version, basename(pr.path, '.usfm'));
-			const paths = [path1, path1 + '.html'];
-			const path = paths.find(p => existsSync(p));
-			return {
-				...pr,
-				path,
-				isDirectory: statSync(path).isDirectory()
-			};
-		})
-		.map(pr => {
-			const newPath = join(outDir, biblesDir, version, pr.identifier + (pr.isDirectory ? '' : '.html'));
-			renameSync(pr.path, newPath);
-			pr.path = newPath;
-			return pr;
-		})
-		.filter(pr => statSync(pr.path).isDirectory())
-		.sort((pr1, pr2) => pr1.sort - pr2.sort)
+function listBooks(dir) {
+	return readdirSync(dir, { withFileTypes: true })
+		.filter(f => f.isDirectory())
+		.map(f => f.name)
 		.reduce((acc, cur) => {
-			const chapters = readdirSync(cur.path)
+			const chapters = readdirSync(join(dir, cur))
 				.map(f => +basename(f, '.html'))
 				.sort((a, b) => a - b);
 			let can_compress = true;
@@ -85,29 +57,13 @@ function unfoldingWord(version, manifest) {
 				if (i + 1 != chapters[i]) can_compress = false;
 			}
 			if (can_compress) {
-				acc[cur.identifier] = chapters.length;
+				acc[cur] = chapters.length;
 			} else {
-				acc[cur.identifier] = chapters;
+				acc[cur] = chapters;
 			}
 
 			return acc;
 		}, {});
-
-	const res = {
-		publisher: core.creator,
-		title: core.title,
-		date: core.issued,
-		license: core.rights,
-		authors: core.contributor,
-		books,
-	};
-
-	const frontmatter = parsed.projects.find(p => p.identifier == 'frt');
-	if (frontmatter) {
-		res.about = frontmatter.identifier;
-	}
-
-	return res;
 }
 
 rmSync(outDir, { recursive: true, force: true });
