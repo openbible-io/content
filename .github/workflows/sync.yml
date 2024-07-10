@@ -30,4 +30,6 @@ jobs:
            *) BUCKET="static2" ;;
           esac
           echo "Syncing to bucket $BUCKET"
-          rclone sync --progress dist openbible:$BUCKET
+          rclone copy --size-only --stats-one-line -v --log-file synced --progress dist openbible:$BUCKET
+          awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
+          node purge.js to_invalidate

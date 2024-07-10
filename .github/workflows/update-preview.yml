@@ -35,4 +35,9 @@ jobs:
       - run: npm install
       - name: Build dist
         run: npm run build
-      - run: rclone sync --progress dist openbible:static2
+      - run: |
+         BUCKET="static2"
+          echo "Syncing to bucket $BUCKET"
+          rclone copy --size-only --stats-one-line -v --log-file synced --progress dist openbible:$BUCKET
+          awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
+          node purge.js to_invalidate
