@@ -11,6 +11,12 @@ function updateDist(dir) {
 	const out = join(outDir, biblesDir, dir);
 
 	execSync(`npm run usfm -- -o ${out} ${join(contentDir, dir)}/*.usfm`);
+	if (dir == 'en_bsb') {
+		console.log('fixing en_bsb');
+		// This publisher egregiously uses `<br>` as bottom margins to paragraphs.
+		// Their usage in Psalms is forgiveable.
+		execSync(`find ${join(outDir, biblesDir, dir)} -name '*.html' -not -path '*/psa/*' | xargs sed -i 's/<br>//g'`);
+	}
 	console.log();
 }
 
