@@ -24,7 +24,8 @@ jobs:
       - run: npm install
       - name: Build dist
         run: npm run build
-      - run: |
+      - name: copy
+        run: |
           case "${{ github.ref_name }}" in
            master) BUCKET="static" ;;
            *) BUCKET="static2" ;;
@@ -32,4 +33,4 @@ jobs:
           echo "Syncing to bucket $BUCKET"
           rclone copy --size-only --stats-one-line -v --log-file synced --progress dist openbible:$BUCKET
           awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
-          node purge.js to_invalidate
+      - run: node purge.js to_invalidate
