@@ -43,3 +43,5 @@ jobs:
           awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
       - run: cat to_invalidate
       - run: node purge.js to_invalidate
+        env:
+            CLOUDFLARE_PURGE_KEY: ${{ secrets.CLOUDFLARE_PURGE_KEY }}
