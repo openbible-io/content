@@ -9,9 +9,9 @@
 - [x] upload!
 - [x] manifest
 - [x] cache to smooth over new frontend deployments
-	- [ ] invalidate on s3 sync
-		- [ ] API Key + API call
-		- [ ] rclone --log-file --one-line -v
+	- [x] invalidate on s3 sync
+		- [x] API Key + API call
+		- [x] rclone --log-file --one-line -v
 - [ ] layers
 	- [ ] footnotes
 	- [ ] strongs
