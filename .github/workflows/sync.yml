@@ -24,7 +24,7 @@ jobs:
       - run: npm install
       - name: Build dist
         run: npm run build
-      - name: copy
+      - name: S3 Upload
         run: |
           case "${{ github.ref_name }}" in
            master) BUCKET="static" ;;
@@ -33,4 +33,5 @@ jobs:
           echo "Syncing to bucket $BUCKET"
           rclone copy --size-only --stats-one-line -v --log-file synced --progress dist openbible:$BUCKET
           awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
+      - run: cat to_invalidate
       - run: node purge.js to_invalidate
