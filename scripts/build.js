@@ -1,16 +1,17 @@
+//! Transforms sources from various formats (USFM, XML, OSIS) to HTML.
 import { execSync } from 'child_process';
 import { join, basename } from 'path';
 import { readdirSync, writeFileSync, readFileSync, rmSync } from 'fs';
 
-const contentDir = 'content/bibles';
+const sourcesDir = 'sources';
 const outDir = 'dist';
 const biblesDir = 'bibles';
 
-function updateDist(dir) {
+function writeBible(dir) {
 	console.log('update', dir);
 	const out = join(outDir, biblesDir, dir);
 
-	execSync(`npm run usfm -- -o ${out} ${join(contentDir, dir)}/*.usfm`);
+	execSync(`npm run usfm -- -o ${out} ${join(sourcesDir, biblesDir, dir)}/*.usfm`);
 	if (dir == 'en_bsb') {
 		console.log('fixing en_bsb');
 		// This publisher egregiously uses `<br>` as bottom margins to paragraphs.
@@ -20,7 +21,7 @@ function updateDist(dir) {
 	console.log();
 }
 
-function writeIndex() {
+function writeBibleIndex() {
 	const index = readdirSync(join(outDir, biblesDir), { withFileTypes: true })
 		.filter(f => f.isDirectory())
 		.map(f => f.name)
@@ -34,7 +35,7 @@ function writeIndex() {
 }
 
 function metadata(dir) {
-	const cwd = join(contentDir, dir);
+	const cwd = join(sourcesDir, biblesDir, dir);
 	console.log('metadata', cwd);
 	execSync('git fetch', { cwd });
 	execSync('git checkout origin/master -- index.json', { cwd });
@@ -144,12 +145,12 @@ function listBooks(dir) {
 }
 
 function validateMetadata(meta) {
-	// For frontend's sake
+	// For frontend's schema
 	if (!meta.title) throw Error('missing title');
 	if (!meta.publisher) throw Error('missing publisher');
 	if (!meta.license) throw Error('missing license');
 }
 
 rmSync(outDir, { recursive: true, force: true });
-readdirSync(contentDir).forEach(updateDist);
-writeIndex();
+readdirSync(join(sourcesDir, biblesDir)).forEach(writeBible);
+writeBibleIndex();

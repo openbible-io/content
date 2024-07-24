@@ -1,11 +1,18 @@
 [submodule "content/en_ult"]
-	path = content/bibles/en_ult
+	path = sources/bibles/en_ult
 	url = https://github.com/openbible-io/en_ult
 	branch = upstream
 [submodule "content/en_ust"]
-	path = content/bibles/en_ust
+	path = sources/bibles/en_ust
 	url = https://github.com/openbible-io/en_ust
 	branch = upstream
 [submodule "content/en_bsb"]
-	path = content/bibles/en_bsb
+	path = sources/bibles/en_bsb
 	url = https://github.com/openbible-io/en_bsb
+[submodule "sources/bibles/morphhb"]
+	path = sources/bibles/morphhb
+	url = https://github.com/openbible-io/morphhb
+	branch = upstream
+[submodule "sources/bibles/tanach.us"]
+	path = sources/bibles/tanach.us
+	url = https://github.com/openbible-io/tanach.us
