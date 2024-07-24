@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import { join, basename } from 'path';
 import { readdirSync, writeFileSync, readFileSync, rmSync } from 'fs';
 
-const contentDir = 'content';
+const contentDir = 'content/bibles';
 const outDir = 'dist';
 const biblesDir = 'bibles';
 
