@@ -2,17 +2,17 @@
 	path = sources/bibles/en_ult
 	url = https://github.com/openbible-io/en_ult
 	branch = upstream
+	shallow = true
 [submodule "content/en_ust"]
 	path = sources/bibles/en_ust
 	url = https://github.com/openbible-io/en_ust
 	branch = upstream
+	shallow = true
 [submodule "content/en_bsb"]
 	path = sources/bibles/en_bsb
 	url = https://github.com/openbible-io/en_bsb
-[submodule "sources/bibles/morphhb"]
-	path = sources/bibles/morphhb
-	url = https://github.com/openbible-io/morphhb
-	branch = upstream
-[submodule "sources/bibles/tanach.us"]
-	path = sources/bibles/tanach.us
-	url = https://github.com/openbible-io/tanach.us
+	shallow = true
+[submodule "sources/step"]
+	path = sources/step
+	url = https://github.com/openbible-io/step
+	shallow = true
