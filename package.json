@@ -1,0 +1,28 @@
+{
+	"name": "content",
+	"version": "0.0.1",
+	"type": "module",
+	"description": "Render static Bible content.",
+	"scripts": {
+		"build": "node --experimental-strip-types src/main.ts"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/openbible-io/content.git"
+	},
+	"author": "thesmartwon",
+	"license": "CC0-1.0",
+	"bugs": {
+		"url": "https://github.com/openbible-io/content/issues"
+	},
+	"homepage": "https://github.com/openbible-io/content#readme",
+	"dependencies": {
+		"@fast-csv/parse": "^5.0.0",
+		"@openbible/en_bsb": "^0.1.13",
+		"@openbible/step": "^0.0.18",
+		"@types/better-sqlite3": "^7.6.11",
+		"@types/node": "^22.7.0",
+		"better-sqlite3": "^11.3.0",
+		"glob": "^11.0.0"
+	}
+}

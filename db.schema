@@ -1,0 +1,111 @@
+
+Table lang {
+  id integer [pk, unique]
+  code string [not null, unique]
+}
+
+Table book {
+  id integer [pk, unique]
+  paratext_id string [unique]
+  lang_id integer
+  is_new_testament bool
+  self_signed bool
+}
+Ref: book.lang_id > lang.id
+
+Table tradition {
+  id integer [pk, unique]
+  name_en string
+  start date
+}
+
+Table canon {
+  id integer [pk, unique]
+  tradition_id integer
+  name string [note: 'In original language.']
+  name_en string
+  date date
+}
+Ref: canon.tradition_id > tradition.id
+
+Table canon_book {
+  canon_id integer
+  book_id integer
+  order integer
+  is_canon bool [note: 'True = canon, False = apocrypha']
+}
+Ref: canon_book.canon_id > canon.id
+Ref: canon_book.book_id > book.id
+
+Table img {
+  id integer [pk, unique]
+  photographer string
+  photographed date
+  place string
+  book_id integer
+  subject string
+  subject_date date
+  url string
+}
+
+Table img_text {
+  id integer [pk, unique]
+  img_id integer
+  lang_id integer
+  text string
+  textPath string
+  quality integer
+  ends_line bool
+  bible_id integer
+}
+Ref: img_text.img_id > img.id
+Ref: img_text.lang_id > lang.id
+
+Table reading {
+  id integer [pk, unique]
+  lang_id integer
+  book_id integer
+  number integer [not null, note: '1 = most likely']
+  score integer [note: 'Algorithmic']
+  order integer
+  text string
+  dict_id integer
+}
+Ref: reading.lang_id > lang.id
+Ref: reading.book_id > book.id
+Ref: reading.dict_id > dict.id
+
+Table license {
+  id integer [pk, unique]
+  spdx string
+  url string
+}
+
+Table publication {
+  id integer [pk, unique]
+  lang_id integer
+  license_id integer
+  name string
+  short_name string
+  date year
+}
+Ref: publication.lang_id > lang.id
+Ref: publication.license_id > license.id
+
+Table publication_text {
+  id integer [pk, unique]
+  publication_id integer
+  book_id integer
+  order integer
+  text string
+  reading_id integer
+}
+Ref: publication_text.publication_id > publication.id
+Ref: publication_text.book_id > book.id
+Ref: publication_text.reading_id > reading.id
+
+Table dictionary {
+  id integer [pk, unique]
+  lemma 
+}
+
