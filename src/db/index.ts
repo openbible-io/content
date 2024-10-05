@@ -1,12 +1,13 @@
 //! A SQL database for relationships between words.
 import DatabaseSync from 'better-sqlite3';
-import { rmSync } from 'node:fs';
+import { rmSync, mkdirSync } from 'node:fs';
 import { parseFile as parseCsv, type ParserOptionsArgs } from '@fast-csv/parse';
 
 import * as en_bsb from './en_bsb.ts';
 import * as heb_tat from './heb_tat.ts';
 import * as grc_tat from './grc_tat.ts';
 import * as tbl from './tbl.ts';
+import { dirname } from 'node:path';
 export const ingesters = {
 	en_bsb,
 	heb_tat,
@@ -37,6 +38,7 @@ export type BibleMeta = {
 
 export function init(dropExisting: boolean, metas: BibleMeta[]) {
 	if (dropExisting) rmSync(file, { force: true });
+	mkdirSync(dirname(file), { recursive: true });
 
 	db = new DatabaseSync(file);
 	db.pragma('synchronous = OFF');

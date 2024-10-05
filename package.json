@@ -23,6 +23,7 @@
 		"@types/better-sqlite3": "^7.6.11",
 		"@types/node": "^22.7.0",
 		"better-sqlite3": "^11.3.0",
+		"compromise": "^14.14.0",
 		"glob": "^11.0.0"
 	}
 }

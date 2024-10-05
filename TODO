@@ -1,21 +1,7 @@
-interlinear
-- [ ] align tanach.us with morphbb
-	- [x] figure out slashes
-	- [ ] align ULT, BSB
-	- [ ] align LXX for search (eng -> strongs -> hebrew+greek verses)
-- [ ] programmatic concordance
-- [ ] hebrew dictionary
-- [ ] greek dictionary
-
 audio
 - [ ] sources
 - [ ] transcriptions
 	- [ ] format
 	- [ ] readalong highlighting
 
-search
-- [ ] verse
-- [ ] chapter
-
 user accounts
-- [ ] relational or document db?
