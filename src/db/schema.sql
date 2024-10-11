@@ -39,46 +39,46 @@ CREATE TABLE 'writing_word' (
 	PRIMARY KEY ('writing_id', 'order')
 ) WITHOUT ROWID;
 
-CREATE TABLE 'artifact' (
-	'id' INTEGER PRIMARY KEY,
-	'writing_id' INTEGER REFERENCES 'writing'('id'),
-	'date' TEXT,
-	'type' TEXT,
-	'discovered_date' TEXT,
-	'name' TEXT
-);
-CREATE TABLE 'artifact_tag' (
-	'artifact_id' INTEGER NOT NULL REFERENCES 'artifact'('id'),
-	'key' TEXT NOT NULL,
-	'value' TEXT,
-	PRIMARY KEY('artifact_id', 'key')
-);
-CREATE TABLE 'img' (
-	'id' INTEGER PRIMARY KEY,
-	'artifact_id' INTEGER NOT NULL REFERENCES 'artifact'('id'),
-	'license_id' INTEGER NOT NULL REFERENCES 'license'('id'),
-	'is_front' INTEGER NOT NULL, -- Of artifact
-	'width' INTEGER NOT NULL,
-	'height' INTEGER NOT NULL,
-	'ppi' INTEGER,
-	'wavelength_start' INTEGER,
-	'wavelength_end' INTEGER,
-	'url' TEXT NOT NULL,
-	'svg_url' TEXT
-);
-CREATE TABLE 'img_tag' (
-	'img_id' INTEGER NOT NULL REFERENCES 'img'('id'),
-	'key' TEXT NOT NULL,
-	'value' TEXT,
-	PRIMARY KEY('img_id', 'key')
-);
-CREATE TABLE 'img_word' (
-	'img_id' INTEGER NOT NULL REFERENCES 'img'('id'),
-	'g_selector' TEXT NOT NULL, -- To SVG "g" element
-	'text_offset' INTEGER NOT NULL, -- In bytes from g > text > textContent:innerText
-	'word_master_id' INTEGER REFERENCES 'word_master'('id'),
-	PRIMARY KEY('img_id', 'g_selector', 'text_offset')
-) WITHOUT ROWID;
+-- CREATE TABLE 'artifact' (
+-- 	'id' INTEGER PRIMARY KEY,
+-- 	'writing_id' INTEGER REFERENCES 'writing'('id'),
+-- 	'date' TEXT,
+-- 	'type' TEXT,
+-- 	'discovered_date' TEXT,
+-- 	'name' TEXT
+-- );
+-- CREATE TABLE 'artifact_tag' (
+-- 	'artifact_id' INTEGER NOT NULL REFERENCES 'artifact'('id'),
+-- 	'key' TEXT NOT NULL,
+-- 	'value' TEXT,
+-- 	PRIMARY KEY('artifact_id', 'key')
+-- );
+-- CREATE TABLE 'img' (
+-- 	'id' INTEGER PRIMARY KEY,
+-- 	'artifact_id' INTEGER NOT NULL REFERENCES 'artifact'('id'),
+-- 	'license_id' INTEGER NOT NULL REFERENCES 'license'('id'),
+-- 	'is_front' INTEGER NOT NULL, -- Of artifact
+-- 	'width' INTEGER NOT NULL,
+-- 	'height' INTEGER NOT NULL,
+-- 	'ppi' INTEGER,
+-- 	'wavelength_start' INTEGER,
+-- 	'wavelength_end' INTEGER,
+-- 	'url' TEXT NOT NULL,
+-- 	'svg_url' TEXT
+-- );
+-- CREATE TABLE 'img_tag' (
+-- 	'img_id' INTEGER NOT NULL REFERENCES 'img'('id'),
+-- 	'key' TEXT NOT NULL,
+-- 	'value' TEXT,
+-- 	PRIMARY KEY('img_id', 'key')
+-- );
+-- CREATE TABLE 'img_word' (
+-- 	'img_id' INTEGER NOT NULL REFERENCES 'img'('id'),
+-- 	'g_selector' TEXT NOT NULL, -- To SVG "g" element
+-- 	'text_offset' INTEGER NOT NULL, -- In bytes from g > text > textContent:innerText
+-- 	'word_master_id' INTEGER REFERENCES 'word_master'('id'),
+-- 	PRIMARY KEY('img_id', 'g_selector', 'text_offset')
+-- ) WITHOUT ROWID;
 
 CREATE TABLE 'publisher' (
 	'id' INTEGER PRIMARY KEY,
