@@ -4,14 +4,38 @@ import { join } from 'node:path';
 import { readdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { globSync } from 'glob';
 import { ingestUsfm } from './usfm.ts'
+import { SingleBar, Presets } from 'cli-progress';
 import * as db from './db/index.ts';
 
 const sourcesDir = 'node_modules/@openbible';
 const outDir = 'dist';
 
+export type BibleMeta = {
+	title: string;
+	downloadUrl: string;
+	publisher?: string;
+	publisherUrl?: string;
+	published?: string;
+	isbn?: string;
+	license: string;
+	licenseUrl?: string;
+	authors?: {
+		[name: string]: {
+			url: string;
+			qualifications?: string[];
+			contributions?: string[];
+		}
+	};
+	// Mandatory in, optional out
+	files: string[];
+
+	repo?: string;
+	modified: string;
+};
+
 function main() {
 	const index = {
-		bibles: {} as { [key: string]: db.BibleMeta },
+		bibles: {} as { [key: string]: BibleMeta },
 	};
 	readdirSync(sourcesDir).forEach(source => {
 		const path = join(sourcesDir, source);
@@ -19,64 +43,69 @@ function main() {
 		const pkg = JSON.parse(readFileSync(pkg_path, 'utf8'));
 
 		const meta = pkg.openbible as {
-			bibles: { [key: string]: Partial<db.BibleMeta> },
+			bibles: { [key: string]: Partial<BibleMeta> },
 			published?: string,
 		} | undefined;
 		(['bibles'] as const).forEach(p => {
 			if (!meta?.[p]) return;
 
 			Object.entries(meta[p] ?? {}).forEach(([k, v]) => {
-				v.id = k;
+				validateMetadata(k, v);
 				if (!v.files) throw Error(`${k} missing files in ${pkg_path}`);
 				v.files = v.files.map(f => globSync(join(path, f))).flat().sort();
 				v.repo = pkg.repository.url.replace('git+', '').replace('.git', '');
-				v.modified = meta?.published ?? new Date().toISOString().substring(0, 10);
+				v.published = meta?.published ?? new Date().toISOString().substring(0, 10);
 			});
 
 			Object.assign(index[p], meta[p]);
 		});
 	});
 
-	const bibles = Object.values(index.bibles);
 	const shouldIngest = process.argv.includes('--ingest');
 	db.init(shouldIngest);
 	if (shouldIngest) {
-		console.log('ingesting', bibles.length, 'bibles');
-		for (let b of bibles) ingest(b);
+		const entries = Object.entries(index.bibles);
+		entries.forEach(([k, v]) => ingest(k, v));
 	}
-
-	console.log('summing bookChapters');
-	bibles.forEach(b => b.books = db.bookChapters(b.id!));
 
 	const fname = join(outDir, 'index.json');
 	console.log('writing', fname);
 	Object.values(index.bibles).forEach(b => {
-		validateMetadata(b);
-		delete b.id;
-		delete b.files;
+		delete (b as any).files;
 	});
 	writeFileSync(fname, JSON.stringify(index));
 }
 
-function ingest(bible: db.BibleMeta) {
-	console.log('ingest', bible.id);
-	bible.files?.forEach(f => ingestFile(bible, f));
+function ingest(id: string, meta: BibleMeta) {
+	const publication = db.createPublication(id, meta);
+
+	const bar = new SingleBar({
+		format: '{bar} | {cur} | {value}/{total}',
+	}, Presets.shades_grey);
+	bar.start(meta.files.length, 0);
+	meta.files?.forEach(f => {
+		bar.increment(0, { cur: f });
+		bar.render();
+		ingestFile(id, meta, publication, f);
+		bar.increment();
+	});
+	bar.stop();
 }
 
-function ingestFile(bible: db.BibleMeta, f: string) {
+function ingestFile(id: string, bible: BibleMeta, publication: db.Id, f: string) {
 	if (f.endsWith('.usfm')) {
-		ingestUsfm(bible, f);
+		ingestUsfm(id, bible, publication, f);
+	} else if (f.endsWith('preface.html')) {
 	} else {
 		throw Error(`implement ${f} ingester`);
 	}
 }
 
 /** For frontend's schema. */
-function validateMetadata(bible: db.BibleMeta) {
-	if (!bible.title) throw Error(`${bible.id} missing title`);
-	if (!bible.publisher) throw Error(`${bible.id} missing publisher`);
-	if (!bible.license) throw Error(`${bible.id} missing license`);
-	if (!bible.books) throw Error(`${bible.id} missing books`);
+function validateMetadata(id: string, bible: Partial<BibleMeta>) {
+	if (!bible.title) throw Error(`${id} missing title`);
+	if (!bible.publisher) throw Error(`${id} missing publisher`);
+	if (!bible.license) throw Error(`${id} missing license`);
 }
 
 main();

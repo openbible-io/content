@@ -1,91 +1,43 @@
 CREATE TABLE 'lang' (
 	'id' INTEGER PRIMARY KEY,
-	'code' TEXT NOT NULL
-);
-
+	'code' TEXT NOT NULL -- https://www.loc.gov/standards/iso639-2/php/code_list.php
+) WITHOUT ROWID;
 CREATE TABLE 'word' (
 	'id' INTEGER PRIMARY KEY,
+	'lang' INTEGER REFERENCES 'lang'('id'),
 	'text' TEXT UNIQUE
-);
-
-CREATE TABLE 'tradition' (
-	'id' INTEGER PRIMARY KEY,
-	'name' TEXT,
-	'start_date' TEXT
-);
-
+) WITHOUT ROWID;
 CREATE TABLE 'license' (
 	'id' INTEGER PRIMARY KEY,
-	'spdx' TEXT,
+	'spdx' TEXT UNIQUE, -- https://spdx.org/licenses/
 	'url' TEXT
-);
-
-CREATE TABLE 'publisher' (
-	'id' INTEGER PRIMARY KEY,
-	'name' TEXT,
-	'url' TEXT
-);
-
-CREATE TABLE 'writing' (
-	'id' INTEGER PRIMARY KEY,
-	'publisher_id' INTEGER REFERENCES 'publisher'('id'),
-	'license_id' INTEGER REFERENCES 'license'('id'),
-	'testament' INTEGER NOT NULL, -- 0=none, 1=old, 2=new
-	'date' TEXT, -- Sortable string
-	'title' TEXT, -- In original language.
-	'short_title' TEXT, -- In original language.
-	'download_url' TEXT,
-	'derivative_id' INTEGER REFERENCES 'writing'('id') -- For translated books
-);
-
-CREATE TABLE 'writing_tag' (
-	'writing_id' INTEGER NOT NULL REFERENCES 'writing'('id'),
-	'key' TEXT NOT NULL,
-	'value' TEXT,
-	PRIMARY KEY('writing_id', 'key')
-);
-
-CREATE TABLE 'writing_lang' (
-	'writing_id' INTEGER NOT NULL REFERENCES 'writing'('id'),
-	'lang_id' INTEGER NOT NULL REFERENCES 'lang'('id'),
-	PRIMARY KEY('writing_id', 'lang_id')
 );
 
 CREATE TABLE 'author' (
 	'id' INTEGER PRIMARY KEY,
 	'name' TEXT NOT NULL,
-	'qualifications' TEXT
+	'from' TEXT, -- For disambiguation. Can be a url.
+	UNIQUE ('name', 'from')
 );
-
-CREATE TABLE 'writing_author' (
-	'writing_id' INTEGER NOT NULL,
-	'author_id' INTEGER NOT NULL,
-	PRIMARY KEY('writing_id', 'author_id')
-) WITHOUT ROWID;
-
-CREATE TABLE 'writing_name' (
+CREATE TABLE 'writing' (
 	'id' INTEGER PRIMARY KEY,
-	'lang_id' INTEGER NOT NULL REFERENCES 'lang'('id'),
-	'writing_id' INTEGER NOT NULL REFERENCES 'writing'('id'),
-	'name' TEXT NOT NULL,
-	'note' TEXT
+	'title' TEXT,
+	'lang_id' INTEGER REFERENCES 'lang'('id'), -- Majority.
+	'date_from' INTEGER, -- Julian day number.
+	'date_to' INTEGER, -- Julian day number.
+	-- The following fields are denormalized but cheap.
+	'usfm' TEXT, -- https://ubsicap.github.io/usfm/identification/books.html
+	'is_nt' INTEGER NOT NULL -- Is new testament.
 );
-
-CREATE TABLE 'canon' (
-	'id' INTEGER PRIMARY KEY,
-	'tradition_id' INTEGER NOT NULL REFERENCES 'tradition'('id'),
-	'name' TEXT, -- In original language.
-	'name_en' TEXT,
-	'start_date' TEXT
-);
-
-CREATE TABLE 'canon_writing' (
-	'canon_id' INTEGER NOT NULL REFERENCES 'canon'('id'),
+-- These carry meaning and are relational and searchable.
+CREATE TABLE 'writing_word' (
 	'writing_id' INTEGER NOT NULL REFERENCES 'writing'('id'),
 	'order' INTEGER NOT NULL,
-	'is_apocrypha' INTEGER NOT NULL,
-	PRIMARY KEY('canon_id', 'writing_id')
-);
+	'word_id' INTEGER NOT NULL REFERENCES 'word'('id'),
+	'before' TEXT, -- Spacing and punctuation.
+	'after' TEXT, -- Punctuation.
+	PRIMARY KEY ('writing_id', 'order')
+) WITHOUT ROWID;
 
 CREATE TABLE 'artifact' (
 	'id' INTEGER PRIMARY KEY,
@@ -95,14 +47,12 @@ CREATE TABLE 'artifact' (
 	'discovered_date' TEXT,
 	'name' TEXT
 );
-
 CREATE TABLE 'artifact_tag' (
 	'artifact_id' INTEGER NOT NULL REFERENCES 'artifact'('id'),
 	'key' TEXT NOT NULL,
 	'value' TEXT,
 	PRIMARY KEY('artifact_id', 'key')
 );
-
 CREATE TABLE 'img' (
 	'id' INTEGER PRIMARY KEY,
 	'artifact_id' INTEGER NOT NULL REFERENCES 'artifact'('id'),
@@ -116,14 +66,12 @@ CREATE TABLE 'img' (
 	'url' TEXT NOT NULL,
 	'svg_url' TEXT
 );
-
 CREATE TABLE 'img_tag' (
 	'img_id' INTEGER NOT NULL REFERENCES 'img'('id'),
 	'key' TEXT NOT NULL,
 	'value' TEXT,
 	PRIMARY KEY('img_id', 'key')
 );
-
 CREATE TABLE 'img_word' (
 	'img_id' INTEGER NOT NULL REFERENCES 'img'('id'),
 	'g_selector' TEXT NOT NULL, -- To SVG "g" element
@@ -132,37 +80,54 @@ CREATE TABLE 'img_word' (
 	PRIMARY KEY('img_id', 'g_selector', 'text_offset')
 ) WITHOUT ROWID;
 
-CREATE TABLE 'writing_word' (
+CREATE TABLE 'publisher' (
+	'id' INTEGER PRIMARY KEY,
+	'name' TEXT NOT NULL,
+	'url' TEXT
+);
+CREATE TABLE 'publication' (
+	'id' INTEGER PRIMARY KEY,
+	'lang_id' INTEGER REFERENCES 'lang'('id'), -- Majority.
+	'code' TEXT NOT NULL, -- OpenBible code like "bsb".
+	'title' TEXT, 
+	'subtitle' TEXT,
+	'isbn' TEXT,
+	'publisher_id' INTEGER NOT NULL REFERENCES 'publisher'('id'),
+	UNIQUE ('lang_id', 'code')
+);
+CREATE TABLE 'publication_author' (
+	'publication_id' INTEGER NOT NULL REFERENCES 'publication'('id'),
+	'author_id' INTEGER NOT NULL REFERENCES 'author'('id'),
+	'contribution' TEXT,
+	PRIMARY KEY('publication_id', 'author_id')
+);
+CREATE TABLE 'publication_writing' (
+	'publication_id' INTEGER NOT NULL REFERENCES 'publication'('id'),
 	'writing_id' INTEGER NOT NULL REFERENCES 'writing'('id'),
-	'order' INTEGER NOT NULL,
-	'word_id' INTEGER NOT NULL REFERENCES 'word'('id'),
-	'before' TEXT,
-	'after' TEXT,
-	PRIMARY KEY ('writing_id', 'order')
-) WITHOUT ROWID;
+	PRIMARY KEY('publication_id', 'writing_id')
+);
 
-CREATE TABLE 'writing_fmt' (
+-- Tag a word or a character in a word. Some are done by publishers, some by users.
+CREATE TABLE 'word_tag' (
 	'writing_id' INTEGER NOT NULL,
-	'writing_word_order' INTEGER NOT NULL,
-	'type' TEXT,
-	PRIMARY KEY ('writing_id', 'writing_word_order'),
-	FOREIGN KEY('writing_id', 'writing_word_order') REFERENCES 'writing_word'('writing_id', 'order')
+	'order' INTEGER NOT NULL, -- Goes BEFORE this word.
+	'offset' INTEGER NOT NULL, -- From start of word in bytes.
+	'key' TEXT, -- 'p'aragraph, 'v'ersification, 'b'ookmark, 'n'ote
+	'key2' TEXT, -- Bookmark or note category.
+	'value' TEXT,
+	PRIMARY KEY ('writing_id', 'order', 'offset', 'key'),
+	FOREIGN KEY('writing_id', 'order') REFERENCES 'writing_word'('writing_id', 'order')
 ) WITHOUT ROWID;
-
-CREATE TABLE 'writing_versification' (
+CREATE TABLE 'span_tag' (
 	'writing_id' INTEGER NOT NULL,
-	'writing_word_order' INTEGER NOT NULL,
-	'chapter' INTEGER NOT NULL,
-	'verse' INTEGER NOT NULL,
-	PRIMARY KEY ('writing_id', 'writing_word_order'),
-	FOREIGN KEY('writing_id', 'writing_word_order') REFERENCES 'writing_word'('writing_id', 'order')
-) WITHOUT ROWID;
-
-CREATE TABLE 'writing_heading' (
-	'writing_id' INTEGER NOT NULL,
-	'writing_word_order' INTEGER NOT NULL,
-	'level' INTEGER NOT NULL,
-	'text' TEXT NOT NULL,
-	PRIMARY KEY ('writing_id', 'writing_word_order'),
-	FOREIGN KEY('writing_id', 'writing_word_order') REFERENCES 'writing_word'('writing_id', 'order')
+	'start' INTEGER NOT NULL,
+	'start_offset' INTEGER NOT NULL, -- From start of word in bytes.
+	'end' INTEGER NOT NULL,
+	'end_offset' INTEGER NOT NULL, -- From start of word in bytes.
+	'key' TEXT, -- 'h'ighlight, 'n'ote, 't'itle
+	'key2' TEXT, -- Highlight or note category. Title heading level
+	'value' TEXT,
+	PRIMARY KEY ('writing_id', 'start', 'start_offset', 'end', 'end_offset', 'key'),
+	FOREIGN KEY('writing_id', 'start') REFERENCES 'writing_word'('writing_id', 'order'),
+	FOREIGN KEY('writing_id', 'end') REFERENCES 'writing_word'('writing_id', 'order')
 ) WITHOUT ROWID;

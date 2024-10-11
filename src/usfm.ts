@@ -1,29 +1,40 @@
 import { readFileSync } from 'node:fs';
+import { type BibleMeta } from './main.ts';
 import * as db from './db/index.ts';
 import { toJSON } from 'usfm-js';
 
-export function ingestUsfm(meta: db.BibleMeta, f: string) {
+export function ingestUsfm(id: string, meta: BibleMeta, publication: db.Id, f: string) {
 	const usfm = readFileSync(f, 'utf8');
 	const parsed = toJSON(usfm);
-	const usfm_id = parsed.headers.find(h => h.tag == 'id').content.substring(0, 3).toLowerCase();
-	console.log(usfm_id);
-	const derivativeId = db.getWriting(usfm_id);
-	const writingId = db.createWriting(usfm_id, meta, derivativeId);
+	const bookId = parsed.headers
+		.find((h: any) => h.tag == 'id').content
+		.substring(0, 3)
+		.toLowerCase();
+	const lang = id.split('_')[0];
+	const title = (parsed.headers.find((h: any) => ['h', 'toc1', 'mt1'].includes(h.tag)) ?? { content: '' }).content;
 
-	// Sort front to front...
+	const published = meta.published ? new Date(meta.published) : undefined;
+	const from = db.toJulianDays(published);
+
+	const writingId = db.createWriting(bookId, title, lang, from);
+	db.db.prepare(`INSERT INTO publication_writing VALUES (?, ?)`)
+		.run(publication, writingId);
+
+	// Sort front to be first verse
 	Object.values(parsed.chapters).forEach((c: any) => {
 		c['-1'] = c.front;
 		delete c.front;
 	});
 
-	const segmenter = new Intl.Segmenter(meta.id.split('_')[0], { granularity: 'word' });
+	const segmenter = new Intl.Segmenter(lang, { granularity: 'word' });
 	let before = '';
 	let after = '';
 	let fmt = '';
 	let text = '';
 	let order = 1;
-	let ref: { c: number, v: number } | undefined;
-	let heading: { level: number, text: string } | undefined;
+	let chapter = '';
+	let verse = '';
+	let heading = '';
 
 	const insertWord = db.db.prepare(`
 INSERT INTO writing_word
@@ -31,50 +42,35 @@ INSERT INTO writing_word
 (?, ?, ?, ?, ?)
 `);
 
-const insertFmt = db.db.prepare(`
-INSERT INTO writing_fmt
-('writing_id', 'writing_word_order', 'type') VALUES
-(?, ?, ?)
-`);
-
-const insertVerse = db.db.prepare(`
-INSERT INTO writing_versification
-('writing_id', 'writing_word_order', 'chapter', 'verse') VALUES
-(?, ?, ?, ?)
-`);
-
-const insertHeading = db.db.prepare(`
-INSERT INTO writing_heading
-('writing_id', 'writing_word_order', 'level', 'text') VALUES
-(?, ?, ?, ?)
+	const insertTag = db.db.prepare(`
+INSERT INTO word_tag
+('writing_id', 'order', 'offset', 'key', 'value') VALUES
+(?, ?, 0, ?, ?)
 `);
 
 	function flushWord() {
 		if (!text) return;
-		//console.log({ before, text, after })
-		//before = '';
-		//after = '';
-		//text = '';
-		//fmt = '';
-		//return;
-		const wordId = db.createOrGetWord(text);
+		const wordId = db.createOrGetWord(text, lang);
 		const writingWordOrder = order++;
-		insertWord.run(writingId, writingWordOrder, wordId, before, after);
 
-		if (ref) insertVerse.run(writingId, writingWordOrder, ref.c, ref.v);
-		if (fmt) insertFmt.run(writingId, writingWordOrder, fmt);
-		if (heading) insertHeading.run(writingId, writingWordOrder, heading.level, heading.text);
+		insertWord.run(writingId, writingWordOrder, wordId, before, after);
+		if (chapter) insertTag.run(writingId, writingWordOrder, 'c', chapter);
+		if (verse) insertTag.run(writingId, writingWordOrder, 'v', verse);
+		if (heading) insertTag.run(writingId, writingWordOrder, 'h', heading);
 
 		before = '';
 		after = '';
 		text = '';
 		fmt = '';
-		ref = undefined;
-		heading = undefined;
+		chapter = '';
+		verse = '';
+		heading = '';
 	}
+
 	function parseVerseObject(vo: any) {
+		// console.log(vo);
 		if (vo.type == 'section') {
-			heading = { level: +vo.tag.match(/\d+/)[0], text: vo.content };
+			heading = vo.content.trim();
 			return;
 		}
 		if (vo.type != 'paragraph' && !vo.text) return;
@@ -90,14 +86,15 @@ INSERT INTO writing_heading
 		}
 		flushWord();
 	}
+
 	Object.keys(parsed.chapters).forEach(c => {
+		chapter = c;
 		Object.keys(parsed.chapters[c])
 			.map(v => parseInt(v))
 			.sort((a, b) => a - b)
 			.forEach(v => {
-				ref = { c: +c, v };
+				verse = v.toString();
 				parsed.chapters[c][v].verseObjects.forEach(parseVerseObject);
 			});
 	});
 }
-
