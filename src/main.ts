@@ -1,11 +1,9 @@
 //! Transforms sources from various formats (USFM, XML, OSIS) to HTML by ingesting through a SQL
 //! database that matches the one stored client-side.
 import { join } from 'node:path';
-import { readdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { readdirSync, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
 import { globSync } from 'glob';
 import { ingestUsfm } from './usfm.ts'
-import { SingleBar, Presets } from 'cli-progress';
-import * as db from './db/index.ts';
 
 const sourcesDir = 'node_modules/@openbible';
 const outDir = 'dist';
@@ -61,12 +59,8 @@ function main() {
 		});
 	});
 
-	const shouldIngest = process.argv.includes('--ingest');
-	db.init(shouldIngest);
-	if (shouldIngest) {
-		const entries = Object.entries(index.bibles);
-		entries.forEach(([k, v]) => ingest(k, v));
-	}
+	const entries = Object.entries(index.bibles);
+	entries.forEach(([k, v]) => ingest(k, v));
 
 	const fname = join(outDir, 'index.json');
 	console.log('writing', fname);
@@ -77,24 +71,18 @@ function main() {
 }
 
 function ingest(id: string, meta: BibleMeta) {
-	const publication = db.createPublication(id, meta);
+	const dir = join(outDir, id);
+	mkdirSync(dir, { recursive: true });
 
-	const bar = new SingleBar({
-		format: '{bar} | {cur} | {value}/{total}',
-	}, Presets.shades_grey);
-	bar.start(meta.files.length, 0);
 	meta.files?.forEach(f => {
-		bar.increment(0, { cur: f });
-		bar.render();
-		ingestFile(id, meta, publication, f);
-		bar.increment();
+		console.log(f);
+		ingestFile(id, meta, dir, f);
 	});
-	bar.stop();
 }
 
-function ingestFile(id: string, bible: BibleMeta, publication: db.Id, f: string) {
+function ingestFile(id: string, bible: BibleMeta, dir: string, f: string) {
 	if (f.endsWith('.usfm')) {
-		ingestUsfm(id, bible, publication, f);
+		ingestUsfm(id, bible, dir, f);
 	} else if (f.endsWith('preface.html')) {
 	} else {
 		throw Error(`implement ${f} ingester`);
