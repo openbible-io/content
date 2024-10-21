@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@openbible/bconv": "jsr:@openbible/bconv@^0.1.5",
+    "@openbible/bsb": "jsr:@openbible/bsb@^0.1.24",
+    "@openbible/core": "jsr:@openbible/core@^0.1.5"
+  }
+}
