@@ -13,28 +13,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: staging
-      - run: git submodule update --init
-      - uses: actions/setup-node@v4
+      - uses: denoland/setup-deno@v2
         with:
-          cache: npm
+          deno-version: v2.x
       - name: Setup Rclone
         uses: AnimMouse/setup-rclone@v1
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
           disable_base64: true
-      - name: Update submodules
-        run: git submodule update --remote
-      - name: Push submodule updates
-        run: |
-          git config user.name ci
-          git config user.email ci@openbible.io
-          git add content
-          git commit -m 'Bump submodules'
-          git push
 # The above will not cascade to the "sync" job.
-      - run: npm install
-      - name: Build dist
-        run: npm run build
+      - run: deno lint
+      - run: deno -A ./build.tsx
       - name: S3 Upload
         run: |
          BUCKET="static2"
@@ -42,6 +31,6 @@ jobs:
           rclone copy --size-only --stats-one-line -v --log-file synced --progress dist openbible:$BUCKET
           awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
       - run: cat to_invalidate
-      - run: node purge.js to_invalidate
+      - run: deno -A ./purge.js to_invalidate
         env:
             CLOUDFLARE_PURGE_KEY: ${{ secrets.CLOUDFLARE_PURGE_KEY }}

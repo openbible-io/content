@@ -1,25 +1,69 @@
 {
-  "version": "4",
-  "specifiers": {
-    "jsr:@openbible/bconv@~0.1.5": "0.1.5",
-    "npm:chalk@^5.3.0": "5.3.0"
-  },
-  "jsr": {
-    "@openbible/bconv@0.1.5": {
-      "integrity": "bb3716ee0a6d6e0a140bf7cb64852d13b69fe263b09932596ab52ee2ec22a6b7",
-      "dependencies": [
-        "npm:chalk"
-      ]
+  "version": "3",
+  "packages": {
+    "specifiers": {
+      "jsr:@openbible/bconv": "jsr:@openbible/bconv@0.1.7",
+      "jsr:@openbible/bsb@^0.1.29": "jsr:@openbible/bsb@0.1.29",
+      "jsr:@std/fs": "jsr:@std/fs@1.0.4",
+      "jsr:@std/fs@^1.0.4": "jsr:@std/fs@1.0.4",
+      "jsr:@std/path": "jsr:@std/path@1.0.6",
+      "jsr:@std/path@^1.0.6": "jsr:@std/path@1.0.6",
+      "npm:@types/node": "npm:@types/node@18.16.19",
+      "npm:chalk@^5.3.0": "npm:chalk@5.3.0",
+      "npm:preact-render-to-string@^6.5.11": "npm:preact-render-to-string@6.5.11_preact@10.24.3",
+      "npm:preact@^10.24.3": "npm:preact@10.24.3"
+    },
+    "jsr": {
+      "@openbible/bconv@0.1.7": {
+        "integrity": "5db3a38ee6af8e4ff05008ec576d5c6e0273f2969ff0bf320f55159331fd3c53",
+        "dependencies": [
+          "npm:chalk@^5.3.0"
+        ]
+      },
+      "@openbible/bsb@0.1.29": {
+        "integrity": "b246d558737daa4764e2fe3d82f02587080237a3bd72f7fd4235ecf21b8c3e22"
+      },
+      "@std/fs@1.0.4": {
+        "integrity": "2907d32d8d1d9e540588fd5fe0ec21ee638134bd51df327ad4e443aaef07123c",
+        "dependencies": [
+          "jsr:@std/path@^1.0.6"
+        ]
+      },
+      "@std/path@1.0.6": {
+        "integrity": "ab2c55f902b380cf28e0eec501b4906e4c1960d13f00e11cfbcd21de15f18fed"
+      }
+    },
+    "npm": {
+      "@types/node@18.16.19": {
+        "integrity": "sha512-IXl7o+R9iti9eBW4Wg2hx1xQDig183jj7YLn8F7udNceyfkbn1ZxmzZXuak20gR40D7pIkIY1kYGx5VIGbaHKA==",
+        "dependencies": {}
+      },
+      "chalk@5.3.0": {
+        "integrity": "sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==",
+        "dependencies": {}
+      },
+      "preact-render-to-string@6.5.11_preact@10.24.3": {
+        "integrity": "sha512-ubnauqoGczeGISiOh6RjX0/cdaF8v/oDXIjO85XALCQjwQP+SB4RDXXtvZ6yTYSjG+PC1QRP2AhPgCEsM2EvUw==",
+        "dependencies": {
+          "preact": "preact@10.24.3"
+        }
+      },
+      "preact@10.24.3": {
+        "integrity": "sha512-Z2dPnBnMUfyQfSQ+GBdsGa16hz35YmLmtTLhM169uW944hYL6xzTYkJjC07j+Wosz733pMWx0fgON3JNw1jJQA==",
+        "dependencies": {}
+      }
     }
   },
-  "npm": {
-    "chalk@5.3.0": {
-      "integrity": "sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w=="
-    }
-  },
+  "remote": {},
   "workspace": {
     "dependencies": [
-      "jsr:@openbible/bconv@~0.1.5"
+      "jsr:@openbible/bconv",
+      "jsr:@openbible/bsb@^0.1.29",
+      "jsr:@openbible/core",
+      "jsr:@std/fs@^1.0.4",
+      "jsr:@std/path@^1.0.6",
+      "npm:preact-render-to-string@^6.5.11",
+      "npm:preact@^10.24.3"
     ]
   }
 }

@@ -11,19 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
         with:
-          submodules: true
-      - uses: actions/setup-node@v4
-        with:
-          cache: 'npm'
+          deno-version: v2.x
       - name: Setup Rclone
         uses: AnimMouse/setup-rclone@v1
         with:
           rclone_config: ${{ secrets.RCLONE_CONFIG }}
           disable_base64: true
-      - run: npm install
-      - name: Build dist
-        run: npm run build
+      - run: deno -A ./build.tsx
       - name: S3 Upload
         run: |
           case "${{ github.ref_name }}" in
@@ -34,6 +30,6 @@ jobs:
           rclone copy --size-only --stats-one-line -v --log-file synced --progress dist openbible:$BUCKET
           awk -F': ' '/Copied/ {print "https://'$BUCKET'.openbible.io/"$2}' synced > to_invalidate
       - run: cat to_invalidate
-      - run: node purge.js to_invalidate
+      - run: deno -A ./purge.js to_invalidate
         env:
             CLOUDFLARE_PURGE_KEY: ${{ secrets.CLOUDFLARE_PURGE_KEY }}

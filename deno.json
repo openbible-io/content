@@ -1,7 +1,15 @@
 {
   "imports": {
-    "@openbible/bconv": "jsr:@openbible/bconv@^0.1.5",
-    "@openbible/bsb": "jsr:@openbible/bsb@^0.1.24",
-    "@openbible/core": "jsr:@openbible/core@^0.1.5"
+    "@openbible/bconv": "jsr:@openbible/bconv",
+    "@openbible/bsb": "jsr:@openbible/bsb@^0.1.29",
+    "@openbible/core": "jsr:@openbible/core",
+    "@std/fs": "jsr:@std/fs@^1.0.4",
+    "@std/path": "jsr:@std/path@^1.0.6",
+    "preact": "npm:preact@^10.24.3",
+    "preact-render-to-string": "npm:preact-render-to-string@^6.5.11"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "preact"
   }
 }
